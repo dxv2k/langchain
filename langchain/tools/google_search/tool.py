@@ -1,5 +1,5 @@
 """Tool for the Google search API."""
-
+import asyncio
 from langchain.tools.base import BaseTool
 from langchain.utilities.google_search import GoogleSearchAPIWrapper
 
@@ -42,4 +42,5 @@ class GoogleSearchResults(BaseTool):
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
-        raise NotImplementedError("GoogleSearchRun does not support async")
+        run_func = await asyncio.to_thread(self.run,query)        
+        return run_func
