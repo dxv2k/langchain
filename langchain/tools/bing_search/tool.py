@@ -1,5 +1,5 @@
 """Tool for the Bing search API."""
-
+import asyncio
 from langchain.tools.base import BaseTool
 from langchain.utilities.bing_search import BingSearchAPIWrapper
 
@@ -21,4 +21,5 @@ class BingSearchRun(BaseTool):
 
     async def _arun(self, query: str) -> str:
         """Use the tool asynchronously."""
-        raise NotImplementedError("BingSearchRun does not support async")
+        run_func = await asyncio.to_thread(self.run,query)        
+        return run_func
