@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import pickle
 import uuid
+import asyncio
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
@@ -408,4 +409,29 @@ class FAISS(VectorStore):
         # load docstore and index_to_docstore_id
         with open(path / "index.pkl", "rb") as f:
             docstore, index_to_docstore_id = pickle.load(f)
+        return cls(embeddings.embed_query, index, docstore, index_to_docstore_id)
+
+    @classmethod
+    async def load_local_async(cls, folder_path: str, embeddings: Embeddings) -> CustomFAISS:
+        """Load FAISS index, docstore, and index_to_docstore_id to disk.
+
+        Args:
+            folder_path: folder path to load index, docstore,
+                and index_to_docstore_id from.
+            embeddings: Embeddings to use when generating queries
+        """
+        path = Path(folder_path)
+
+        # load index separately since it is not picklable
+        faiss = dependable_faiss_import()
+
+        # Load index asynchronously
+        index = await asyncio.to_thread(faiss.read_index, str(path / "index.faiss"))
+
+
+        # Load docstore and index_to_docstore_id asynchronously
+        with open(path / "index.pkl", "rb") as f:
+            data = await asyncio.to_thread(pickle.load, f)
+            docstore, index_to_docstore_id = data 
+
         return cls(embeddings.embed_query, index, docstore, index_to_docstore_id)
